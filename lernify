@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learnify - Online Learning Platform</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons for scalable SVG icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        /* --- CSS Variables & Reset --- */
+        :root {
+            --primary-color: #2563eb; /* Royal Blue */
+            --primary-hover: #1d4ed8;
+            --secondary-color: #1e293b; /* Dark Slate */
+            --text-color: #475569; /* Slate Gray */
+            --light-bg: #f8fafc;
+            --white: #ffffff;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --transition: all 0.25s ease;
+            --container-padding: 2rem;
+            --max-width: 1200px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            background-color: var(--white);
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* --- Layout Utilities --- */
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-color);
+            color: var(--white);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            text-align: center;
+            margin-bottom: 2.5rem;
+            font-weight: 700;
+        }
+
+        /* --- Header & Nav --- */
+        header {
+            background-color: var(--white);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-bar {
+            display: none; /* Hidden on mobile initially */
+            background: var(--light-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            width: 300px;
+        }
+
+        .search-bar input {
+            border: none;
+            background: transparent;
+            width: 100%;
+            outline: none;
+            color: var(--text-color);
+        }
+
+        .nav-links {
+            display: none; /* Hidden on mobile */
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .auth-buttons {
+            display: none;
+            gap: 1rem;
+        }
+
+        .mobile-menu-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--secondary-color);
+        }
+
+        /* Desktop Nav Styles */
+        @media (min-width: 768px) {
+            .search-bar { display: flex; }
+            .nav-links { display: flex; }
+            .auth-buttons { display: flex; }
+            .mobile-menu-btn { display: none; }
+        }
+
+        /* --- Hero Section --- */
+        .hero {
+            background-color: #eff6ff;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+        }
+
+        .hero-search {
+            background: var(--white);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .hero-search input {
+            padding: 1rem;
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .hero h1 { font-size: 3.5rem; }
+            .hero-search { flex-direction: row; }
+            .hero-search .btn { white-space: nowrap; }
+        }
+
+        /* --- Keyframe Animation --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Categories Section --- */
+        .categories {
+            padding: 4rem 0;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .category-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .category-card {
+            background: var(--white);
+            padding: 2rem 1rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+        }
+
+        .category-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        .category-title {
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        /* --- Featured Courses Section --- */
+        .featured {
+            padding: 4rem 0;
+            background-color: var(--light-bg);
+        }
+
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        select {
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .course-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        
+        @media (min-width: 1024px) {
+            .course-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .course-card {
+            background: var(--white);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .course-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-5px);
+        }
+
+        .course-img {
+            height: 200px;
+            background-color: #cbd5e1;
+            position: relative;
+        }
+        
+        .course-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .course-content {
+            padding: 1.5rem;
+        }
+
+        .course-badge {
+            background: #dbeafe;
+            color: var(--primary-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .course-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            margin: 0.75rem 0;
+        }
+
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .rating {
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .price {
+            font-weight: 700;
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+
+        /* --- Testimonials --- */
+        .testimonials {
+            padding: 4rem 0;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .testimonial-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        .testimonial-card {
+            background: var(--light-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            text-align: center;
+        }
+
+        .testimonial-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #cbd5e1;
+            margin: 0 auto 1rem;
+            object-fit: cover;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-name {
+            font-weight: 700;
+            color: var(--secondary-color);
+        }
+
+        /* --- Pricing Section --- */
+        .pricing {
+            padding: 4rem 0;
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+
+        .pricing .section-title {
+            color: var(--white);
+        }
+
+        .pricing-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .pricing-grid { flex-direction: row; }
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            flex: 1;
+            max-width: 350px;
+            margin: 0 auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pricing-card.popular {
+            background: var(--primary-color);
+            transform: scale(1.05);
+            border: none;
+        }
+
+        .price-amount {
+            font-size: 3rem;
+            font-weight: 700;
+            margin: 1rem 0;
+        }
+
+        .price-features {
+            text-align: left;
+            margin: 2rem 0;
+        }
+
+        .price-features li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* --- Contact Section --- */
+        .contact {
+            padding: 4rem 0;
+        }
+
+        .contact-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--light-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-family: inherit;
+        }
+
+        /* --- Footer --- */
+        footer {
+            background-color: #0f172a;
+            color: #94a3b8;
+            padding: 4rem 0 2rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .footer-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .footer-col h4 {
+            color: var(--white);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-col ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #1e293b;
+            font-size: 0.875rem;
+        }
+
+        /* --- Utility: Mobile Menu Overlay (Hidden) --- */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--light-bg);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <i class="ph ph-graduation-cap"></i> Learnify
+            </a>
+            
+            <div class="search-bar">
+                <i class="ph ph-magnifying-glass"></i>
+                <input type="text" placeholder="Search courses, topics...">
+            </div>
+
+            <!-- Desktop Nav -->
+            <nav class="nav-links">
+                <a href="#categories">Categories</a>
+                <a href="#courses">Courses</a>
+                <a href="#pricing">Pricing</a>
+            </nav>
+
+            <div class="auth-buttons">
+                <a href="#" class="btn btn-outline" style="padding: 0.5rem 1rem;">Login</a>
+                <a href="#" class="btn btn-primary" style="padding: 0.5rem 1rem;">Sign Up</a>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <div class="mobile-menu-btn" onclick="toggleMenu()">
+                <i class="ph ph-list"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#categories" onclick="toggleMenu()">Categories</a>
+        <a href="#courses" onclick="toggleMenu()">Courses</a>
+        <a href="#pricing" onclick="toggleMenu()">Pricing</a>
+        <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <button class="btn btn-outline">Login</button>
+            <button class="btn btn-primary">Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container hero-content">
+                <h1>Unlock Your Potential with Online Learning</h1>
+                <p>Join thousands of learners and access top-rated courses from expert instructors. Learn anytime, anywhere.</p>
+                
+                <div class="hero-search">
+                    <input type="text" placeholder="What do you want to learn?">
+                    <button class="btn btn-primary">Find Courses</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Popular Categories -->
+        <section id="categories" class="categories container">
+            <h2 class="section-title">Popular Categories</h2>
+            <div class="category-grid">
+                <div class="category-card">
+                    <i class="ph ph-code category-icon"></i>
+                    <div class="category-title">Development</div>
+                </div>
+                <div class="category-card">
+                    <i class="ph ph-paint-brush category-icon"></i>
+                    <div class="category-title">Design</div>
+                </div>
+                <div class="category-card">
+                    <i class="ph ph-briefcase category-icon"></i>
+                    <div class="category-title">Business</div>
+                </div>
+                <div class="category-card">
+                    <i class="ph ph-translate category-icon"></i>
+                    <div class="category-title">Languages</div>
+                </div>
+                <div class="category-card">
+                    <i class="ph ph-student category-icon"></i>
+                    <div class="category-title">Academics</div>
+                </div>
+                <div class="category-card">
+                    <i class="ph ph-music-notes category-icon"></i>
+                    <div class="category-title">Music</div>
+                </div>
+                <div class="category-card">
+                    <i class="ph ph-camera category-icon"></i>
+                    <div class="category-title">Photography</div>
+                </div>
+                <div class="category-card">
+                    <i class="ph ph-flask category-icon"></i>
+                    <div class="category-title">Science</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Courses -->
+        <section id="courses" class="featured">
+            <div class="container">
+                <h2 class="section-title">Featured Courses</h2>
+                
+                <!-- Filters -->
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Level:</label>
+                        <select><option>All Levels</option><option>Beginner</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Price:</label>
+                        <select><option>All Prices</option><option>Free</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <input type="checkbox" id="cert"> <label for="cert">Certificate</label>
+                    </div>
+                </div>
+
+                <!-- Grid -->
+                <div class="course-grid">
+                    <!-- Course 1 -->
+                    <article class="course-card">
+                        <div class="course-img">
+                             <img src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Coding">
+                        </div>
+                        <div class="course-content">
+                            <span class="course-badge">Development</span>
+                            <h3 class="course-title">Modern Web Development Bootcamp</h3>
+                            <div class="course-meta">
+                                <div class="rating">
+                                    <i class="ph-fill ph-star"></i> 4.8 (2.5k)
+                                </div>
+                                <div class="price">$89.99</div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Course 2 -->
+                    <article class="course-card">
+                        <div class="course-img">
+                            <img src="https://images.unsplash.com/photo-1626785774573-4b799314346d?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Design">
+                        </div>
+                        <div class="course-content">
+                            <span class="course-badge">Design</span>
+                            <h3 class="course-title">Graphic Design Masterclass</h3>
+                            <div class="course-meta">
+                                <div class="rating">
+                                    <i class="ph-fill ph-star"></i> 4.9 (1.2k)
+                                </div>
+                                <div class="price">$59.99</div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- Course 3 -->
+                    <article class="course-card">
+                        <div class="course-img">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Business">
+                        </div>
+                        <div class="course-content">
+                            <span class="course-badge">Business</span>
+                            <h3 class="course-title">Business Analytics Fundamentals</h3>
+                            <div class="course-meta">
+                                <div class="rating">
+                                    <i class="ph-fill ph-star"></i> 4.7 (800)
+                                </div>
+                                <div class="price">$49.99</div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials container">
+            <h2 class="section-title">Student Success Stories</h2>
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Student" class="testimonial-img">
+                    <p class="testimonial-text">"The web development bootcamp changed my career path completely. Highly recommend!"</p>
+                    <div class="testimonial-name">Sarah Jenkins</div>
+                </div>
+                <div class="testimonial-card">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Student" class="testimonial-img">
+                    <p class="testimonial-text">"Flexible learning that actually fits my schedule. The instructors are world-class."</p>
+                    <div class="testimonial-name">Michael Chen</div>
+                </div>
+                <div class="testimonial-card">
+                    <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Student" class="testimonial-img">
+                    <p class="testimonial-text">"I got certified in Digital Marketing and landed a job within a month. Amazing platform."</p>
+                    <div class="testimonial-name">Emma Wilson</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section id="pricing" class="pricing">
+            <div class="container">
+                <h2 class="section-title">Simple Pricing</h2>
+                <div class="pricing-grid">
+                    <div class="pricing-card">
+                        <h3>Free</h3>
+                        <div class="price-amount">$0</div>
+                        <ul class="price-features">
+                            <li><i class="ph ph-check"></i> Access to free courses</li>
+                            <li><i class="ph ph-check"></i> Community support</li>
+                        </ul>
+                        <button class="btn btn-outline" style="border-color: white; color: white; width: 100%;">Get Started</button>
+                    </div>
+                    <div class="pricing-card popular">
+                        <h3>Pro</h3>
+                        <div class="price-amount">$29<span style="font-size: 1rem; font-weight: 400;">/mo</span></div>
+                        <ul class="price-features">
+                            <li><i class="ph ph-check"></i> Unlimited access</li>
+                            <li><i class="ph ph-check"></i> Professional Certificates</li>
+                            <li><i class="ph ph-check"></i> Offline downloads</li>
+                        </ul>
+                        <button class="btn" style="background: white; color: var(--primary-color); width: 100%;">Start Free Trial</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Form -->
+        <section class="contact container">
+            <h2 class="section-title">Contact Us</h2>
+            <div class="contact-container">
+                <form onsubmit="event.preventDefault(); alert('Message sent! (Demo only)');">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" placeholder="Your Name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" rows="5" placeholder="How can we help?" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Send Message</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="#" class="logo" style="margin-bottom: 1rem;">
+                        <i class="ph ph-graduation-cap"></i> Learnify
+                    </a>
+                    <p>Empowering learners worldwide with accessible, high-quality education.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Become an Instructor</a></li>
+                        <li><a href="#">Affiliates</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-icons">
+                        <a href="#"><i class="ph ph-facebook-logo"></i></a>
+                        <a href="#"><i class="ph ph-twitter-logo"></i></a>
+                        <a href="#"><i class="ph ph-instagram-logo"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Learnify Inc. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple script to toggle mobile menu
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
