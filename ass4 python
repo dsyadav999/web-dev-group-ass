@@ -1,0 +1,163 @@
+import os
+import sys
+from datetime import datetime
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+CSV_FILE = "temperature.csv"
+LINE_PLOT_FILE = "line_plot.png"
+BAR_CHART_FILE = "bar_chart.png"
+
+def create_demo_csv(path):
+    """Create a demo temperature.csv for testing (30 days)."""
+    print(f"[INFO] '{path}' not found. Creating demo dataset so you can run the script.")
+    rng = pd.date_range(end=pd.Timestamp.today(), periods=60, freq="D")
+    temps = 20 + 8 * np.sin(np.linspace(0, 3.14 * 2, len(rng))) + np.random.normal(0, 1.8, size=len(rng))
+   
+    temps[[5, 12, 25]] = np.nan
+    df_demo = pd.DataFrame({
+        "date": rng,
+        "temperature": np.round(temps, 1)
+    })
+    df_demo.to_csv(path, index=False)
+    print(f"[INFO] Demo CSV saved to '{path}'")
+
+def load_dataset(path):
+    if not os.path.exists(path):
+        create_demo_csv(path)
+
+    parse_dates = False
+    df = None
+    try:
+        df = pd.read_csv(path)
+        date_col = None
+        for candidate in ["date", "Date", "DATE", "timestamp", "time"]:
+            if candidate in df.columns:
+                date_col = candidate
+                break
+        if date_col is None:           
+            first_col = df.columns[0]
+            try:
+                parsed = pd.to_datetime(df[first_col])
+                date_col = first_col
+            except Exception:
+                date_col = None
+
+        if date_col:
+            df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
+            df = df.rename(columns={date_col: "date"})
+            df = df.sort_values("date").reset_index(drop=True)
+        else:
+            df.insert(0, "date", pd.date_range(start="2020-01-01", periods=len(df), freq="D"))
+            print("[WARN] No date-like column found — created synthetic 'date' column for plotting.")
+    except Exception as e:
+        print("[ERROR] Failed to read CSV:", e)
+        sys.exit(1)
+
+    temp_col_candidates = [c for c in df.columns if "temp" in c.lower() or "temperature" in c.lower()]
+    if temp_col_candidates:
+        df = df.rename(columns={temp_col_candidates[0]: "temperature"})
+    else:
+        numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+        if numeric_cols:
+            df = df.rename(columns={numeric_cols[0]: "temperature"})
+            print(f"[WARN] No 'temperature' column found; using numeric column '{numeric_cols[0]}' as temperature.")
+        else:
+            print("[ERROR] No temperature column found and no numeric columns available. Exiting.")
+            sys.exit(1)
+
+    return df[["date", "temperature"]]
+
+def clean_data(df, fill_method="median"):
+    """
+    Identify and handle missing values.
+    fill_method: 'median', 'mean', or 'drop'
+    """
+    print("\n[STEP] Data overview (first 10 rows):")
+    print(df.head(10).to_string(index=False))
+
+    missing_before = df["temperature"].isna().sum()
+    print(f"\n[INFO] Missing temperature values before cleaning: {missing_before}")
+
+    if missing_before == 0:
+        print("[INFO] No missing values found.")
+        return df.copy()
+
+    if fill_method == "drop":
+        df_clean = df.dropna(subset=["temperature"]).reset_index(drop=True)
+        print(f"[INFO] Dropped rows with missing temperature. Rows now: {len(df_clean)}")
+    else:
+        if fill_method == "mean":
+            fill_value = df["temperature"].mean(skipna=True)
+        else:
+            fill_value = df["temperature"].median(skipna=True)
+        df_clean = df.copy()
+        df_clean["temperature"] = df_clean["temperature"].fillna(fill_value)
+        print(f"[INFO] Filled missing temperatures with {fill_method} value: {fill_value:.2f}")
+
+    missing_after = df_clean["temperature"].isna().sum()
+    print(f"[INFO] Missing temperature values after cleaning: {missing_after}")
+    return df_clean
+
+def plot_line(df, out_file=LINE_PLOT_FILE):
+    plt.figure(figsize=(10, 5))
+    plt.plot(df["date"], df["temperature"], marker="o", linewidth=1)
+    plt.title("Temperature over Time")
+    plt.xlabel("Date")
+    plt.ylabel("Temperature (°C)")
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(out_file, dpi=150)
+    plt.close()
+    print(f"[OK] Line plot saved as: {out_file}")
+
+def plot_bar_monthly(df, out_file=BAR_CHART_FILE):
+    df2 = df.copy()
+    df2["year_month"] = df2["date"].dt.to_period("M")
+    monthly = df2.groupby("year_month")["temperature"].mean().reset_index()
+    monthly["year_month_str"] = monthly["year_month"].astype(str)
+
+    plt.figure(figsize=(10, 5))
+    plt.bar(monthly["year_month_str"], monthly["temperature"])
+    plt.title("Average Temperature — by Month")
+    plt.xlabel("Month")
+    plt.ylabel("Average Temperature (°C)")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(out_file, dpi=150)
+    plt.close()
+    print(f"[OK] Bar chart saved as: {out_file}")
+
+def plot_scatter_with_rolling(df, out_file="scatter_plot.png"):
+    df2 = df.copy()
+    df2["temp_roll7"] = df2["temperature"].rolling(window=7, min_periods=1).mean()
+    plt.figure(figsize=(8, 5))
+    plt.scatter(df2["temperature"], df2["temp_roll7"], alpha=0.6)
+    plt.title("Temperature vs 7-day Rolling Mean")
+    plt.xlabel("Temperature (°C)")
+    plt.ylabel("7-day Rolling Mean (°C)")
+    plt.tight_layout()
+    plt.savefig(out_file, dpi=150)
+    plt.close()
+    print(f"[OK] Scatter plot saved as: {out_file}")
+
+def main():
+    df_raw = load_dataset(CSV_FILE)
+    df_clean = clean_data(df_raw, fill_method="median")
+
+    if not np.issubdtype(df_clean["date"].dtype, np.datetime64):
+        df_clean["date"] = pd.to_datetime(df_clean["date"], errors="coerce")
+
+    plot_line(df_clean, LINE_PLOT_FILE)
+
+    plot_bar_monthly(df_clean, BAR_CHART_FILE)
+
+    plot_scatter_with_rolling(df_clean, out_file="scatter_plot.png")
+
+    print("\n[FINISHED] All plots created. Files in working directory:")
+    for f in [LINE_PLOT_FILE, BAR_CHART_FILE, "scatter_plot.png"]:
+        print("  -", f)
+
+if __name__ == "__main__":
+    main()
