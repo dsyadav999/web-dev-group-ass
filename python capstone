@@ -1,0 +1,231 @@
+import csv
+import os
+from datetime import datetime
+from collections import defaultdict, OrderedDict
+import matplotlib.pyplot as plt
+
+# =============== DATE PARSER ===============
+
+DATE_FORMATS = [
+    "%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y",
+    "%Y/%m/%d", "%d-%m-%Y", "%m-%d-%Y"
+]
+
+def parse_date(date_str):
+    for fmt in DATE_FORMATS:
+        try:
+            return datetime.strptime(date_str.strip(), fmt).date()
+        except:
+            pass
+    raise ValueError(f"Invalid date format: {date_str}")
+
+# =============== SAFE FLOAT ===============
+
+def safe_float(value):
+    try:
+        return float(str(value).replace(",", "").strip())
+    except:
+        return None
+
+# =============== LOAD MULTIPLE CSV FILES ===============
+
+def load_csv_files(files):
+    data = defaultdict(float)
+
+    for file in files:
+        if not os.path.isfile(file):
+            print(f"File not found: {file}")
+            continue
+
+        with open(file, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+
+            headers = [h.lower() for h in reader.fieldnames]
+            date_col = None
+            unit_col = None
+
+            for h in headers:
+                if "date" in h:
+                    date_col = h
+                if "unit" in h or "usage" in h or "kwh" in h:
+                    unit_col = h
+
+            if not date_col or not unit_col:
+                print(f"Invalid structure in {file}")
+                continue
+
+            for row in reader:
+                date_raw = row.get(date_col)
+                units_raw = row.get(unit_col)
+
+                if not date_raw:
+                    continue
+
+                try:
+                    date = parse_date(date_raw)
+                except:
+                    continue
+
+                units = safe_float(units_raw)
+                if units is None:
+                    continue
+
+                data[date] += units
+
+    return OrderedDict(sorted(data.items()))
+
+# =============== ANALYSIS FUNCTIONS ===============
+
+def analyze_usage(data):
+    if not data:
+        return {}
+
+    total = sum(data.values())
+    count = len(data)
+    avg = total / count
+
+    min_day = min(data.items(), key=lambda x: x[1])
+    max_day = max(data.items(), key=lambda x: x[1])
+
+    monthly = defaultdict(float)
+    for d, v in data.items():
+        key = f"{d.year}-{d.month:02d}"
+        monthly[key] += v
+    monthly = OrderedDict(sorted(monthly.items()))
+
+    return {
+        "total": total,
+        "avg": avg,
+        "min": min_day,
+        "max": max_day,
+        "monthly": monthly
+    }
+
+# =============== EXPORT CSV ===============
+
+def export_processed(data, filename="electricity_summary_output.csv"):
+    with open(filename, "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["Date", "Units"])
+        for d, u in data.items():
+            w.writerow([d.isoformat(), u])
+    print(f"Processed CSV saved as {filename}")
+
+# =============== EXPORT SUMMARY ===============
+
+def export_summary(analysis, filename="analysis_summary.txt"):
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("ELECTRICITY USAGE ANALYSIS\n")
+        f.write("===========================\n\n")
+        f.write(f"Total Units: {analysis['total']}\n")
+        f.write(f"Average Daily Usage: {analysis['avg']:.2f}\n")
+        f.write(f"Minimum Usage: {analysis['min'][0]} → {analysis['min'][1]}\n")
+        f.write(f"Maximum Usage: {analysis['max'][0]} → {analysis['max'][1]}\n")
+        f.write("\nMonthly Totals:\n")
+        for m, v in analysis["monthly"].items():
+            f.write(f"{m}: {v}\n")
+    print(f"Summary saved as {filename}")
+
+# =============== LINE PLOT ===============
+
+def plot_usage(data):
+    dates = list(data.keys())
+    values = list(data.values())
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(dates, values, marker="o")
+    plt.title("Household Electricity Usage Trend")
+    plt.xlabel("Date")
+    plt.ylabel("Units")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("usage_plot.png")
+    plt.close()
+    print("Plot saved as usage_plot.png")
+
+# =============== MONTHLY BAR CHART (BONUS) ===============
+
+def plot_monthly_bill(monthly, rate):
+    months = list(monthly.keys())
+    usage = list(monthly.values())
+    bills = [u * rate for u in usage]
+
+    plt.figure(figsize=(10, 5))
+    plt.bar(months, bills)
+    plt.title("Monthly Electricity Bill Comparison")
+    plt.xlabel("Month")
+    plt.ylabel("Bill Amount")
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig("monthly_bill.png")
+    plt.close()
+    print("Bill chart saved as monthly_bill.png")
+
+# =============== DASHBOARD MENU LOOP ===============
+
+def dashboard():
+    data = OrderedDict()
+    analysis = {}
+
+    while True:
+        print("\n===== ELECTRICITY USAGE DASHBOARD =====")
+        print("1. Load CSV files")
+        print("2. View Analysis Summary")
+        print("3. Plot Daily Usage Trend")
+        print("4. Export Processed CSV + Summary")
+        print("5. Bill Estimation (Bonus)")
+        print("6. Exit")
+        choice = input("Enter choice: ")
+
+        if choice == "1":
+            files = input("Enter CSV file paths (comma-separated): ").split(",")
+            files = [f.strip() for f in files]
+            data = load_csv_files(files)
+            if data:
+                analysis = analyze_usage(data)
+                print("Data loaded successfully.")
+
+        elif choice == "2":
+            if not analysis:
+                print("No data loaded.")
+                continue
+            print("\n--- ANALYSIS RESULTS ---")
+            print(f"Total Units: {analysis['total']}")
+            print(f"Average Daily: {analysis['avg']:.2f}")
+            print(f"Min: {analysis['min'][0]} → {analysis['min'][1]}")
+            print(f"Max: {analysis['max'][0]} → {analysis['max'][1]}")
+            print("\nMonthly Totals:")
+            for m, v in analysis["monthly"].items():
+                print(f"{m}: {v}")
+
+        elif choice == "3":
+            if not data:
+                print("Load data first!")
+                continue
+            plot_usage(data)
+
+        elif choice == "4":
+            if not data:
+                print("Load data first!")
+                continue
+            export_processed(data)
+            export_summary(analysis)
+
+        elif choice == "5":
+            if not analysis:
+                print("Load data first!")
+                continue
+            rate = float(input("Enter cost per unit: "))
+            plot_monthly_bill(analysis["monthly"], rate)
+
+        elif choice == "6":
+            print("Goodbye!")
+            break
+
+        else:
+            print("Invalid choice. Try again.")
+
+# =============== RUN ===============
+
+if __name__ == "__main__":
+    dashboard()
